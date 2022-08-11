@@ -1,0 +1,99 @@
+name: Export issues
+on:
+  issues:
+    types: [closed]
+  workflow_dispatch:
+env: 
+  fundR: ${{ fromJSON(github.event.issue.body).fund }} 
+  GitB: "middle-east-town-hall-1"
+ # schedule:
+    # run every 8 hours
+  #  - cron:  '0 0,8,16 * * *'
+jobs:
+  issue:
+    runs-on: ubuntu-latest
+    name: discord
+    steps:
+ #    - name: Set env fun
+ #      run: |
+ #         if [[ $fundR == 'Fund8' ]]; then
+ #             echo "fun=F8" >> "$GITHUB_ENV"
+ #         else 
+ #             echo "fun=F6" >> "$GITHUB_ENV"
+ #         fi
+     - name: Fund 6
+       if: ${{ env.fundR == 'Fund6' }}
+       run: echo "fun=F6" >> "$GITHUB_ENV"
+     - name: Fund 7
+       if: ${{ env.fundR == 'Fund7' }}
+       run: echo "fun=F7" >> "$GITHUB_ENV"
+     - name: Fund 8
+       if: ${{ env.fundR == 'Fund8' }}
+       run: echo "fun=F8" >> "$GITHUB_ENV"
+       
+     - name: FundsIn
+       if: ${{ contains(fromJSON(github.event.issue.body).budget, 'Incoming') }}
+       run: |
+         echo "fCol=#03fc2c" >> "$GITHUB_ENV"
+         echo "fProcess=Amount Received" >> "$GITHUB_ENV"
+         echo "fTitle=Incoming" >> "$GITHUB_ENV"
+       
+     - name: Swapped
+       if: ${{ contains(fromJSON(github.event.issue.body).budget, 'Swap') }}
+       run: |
+         echo "fCol=#0352fc" >> "$GITHUB_ENV"
+         echo "fProcess=Swapped" >> "$GITHUB_ENV"
+         echo "fTitle=Swapped" >> "$GITHUB_ENV"
+         
+     - name: FundsOut
+       if: ${{ !(contains(fromJSON(github.event.issue.body).budget, 'Incoming'))  &&  !(contains(fromJSON(github.event.issue.body).budget, 'Swap')) }}
+       run: |
+         echo "fCol=#ff00aa" >> "$GITHUB_ENV"
+         echo "fProcess=Amount Paid" >> "$GITHUB_ENV"
+         echo "fTitle=Outgoing" >> "$GITHUB_ENV"
+         
+     - name: ada
+       if: ${{ fromJSON(github.event.issue.body).ada > 0 }}
+       run: echo "adaAm=* ${{ fromJSON(github.event.issue.body).ada }} ADA" >> "$GITHUB_ENV"
+     - name: gmbl
+       if: ${{ fromJSON(github.event.issue.body).gmbl > 0 }}
+       run: echo "gmblAm=* ${{ fromJSON(github.event.issue.body).gmbl }} GMBL" >> "$GITHUB_ENV"
+     - name: agix
+       if: ${{ fromJSON(github.event.issue.body).agix > 0 }}
+       run: echo "agixAm=* ${{ fromJSON(github.event.issue.body).agix }} AGIX" >> "$GITHUB_ENV"
+         
+       
+     - name: Set env data
+       id: propdata
+       run: |
+         echo "::set-output name=data::$(curl -s https://raw.githubusercontent.com/treasuryguild/treasury-v3/main/proposals/${{ env.fun }}-${{ fromJSON(github.event.issue.body).proposal }}.json | jq '.wallet' | sed 's/\"//g')"
+     - name: Set env wallet
+       run: |
+         echo "wallet=${{ steps.propdata.outputs.data }}" >> "$GITHUB_ENV"
+     - name: Test Custom
+       uses: rjstone/discord-webhook-notify@v1
+       with:
+         severity: info
+         username: Treasury Guild
+         color: ${{ env.fCol }}
+         avatarUrl: https://github.com/treasuryguild/Treasury-Guild/raw/main/logo132.png
+         description: |
+           `${{ fromJSON(github.event.issue.body).project }} | ${{ fromJSON(github.event.issue.body).fund }} |` [Ideascale](${{ fromJSON(github.event.issue.body).ideascale }})
+         details: | 
+           `${{ fromJSON(github.event.issue.body).proposal }} | ${{ fromJSON(github.event.issue.body).budget }}`
+           ```fix
+           ${{ fromJSON(github.event.issue.body).description }}
+           ```
+           `${{ env.fProcess }}` - [CardanoScan](https://cardanoscan.io/transaction/${{ fromJSON(github.event.issue.body).txid }}) - [GitBook](https://treasury-guild.gitbook.io/${{ env.GitB }}/)
+           ```md
+           ${{ env.adaAm }}
+           ${{ env.gmblAm }}
+           ${{ env.agixAm }}
+           ```
+           `Wallet Balance of` [${{ fromJSON(github.event.issue.body).proposal }}](https://pool.pm/${{ env.wallet }})
+           ```css
+           ${{ fromJSON(github.event.issue.body).wallet-balance[0] }} ${{ fromJSON(github.event.issue.body).wallet-balance[1] }} ${{ fromJSON(github.event.issue.body).wallet-balance[2] }}
+           ```    
+         footer: Exchange Rate - ${{ fromJSON(github.event.issue.body).exchange-rate }}
+         text: ${{ env.fTitle }}
+         webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
