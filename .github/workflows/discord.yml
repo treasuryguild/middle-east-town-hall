@@ -92,8 +92,8 @@ jobs:
            ```
            `Wallet Balance of` [${{ fromJSON(github.event.issue.body).proposal }}](https://pool.pm/${{ env.wallet }})
            ```css
-           ${{ fromJSON(github.event.issue.body).wallet-balance[0] }} ${{ fromJSON(github.event.issue.body).wallet-balance[1] }} ${{ fromJSON(github.event.issue.body).wallet-balance[2] }}
+           ${{ fromJSON(github.event.issue.body).walletBalance[0] }} ${{ fromJSON(github.event.issue.body).walletBalance[1] }} ${{ fromJSON(github.event.issue.body).walletBalance[2] }}
            ```    
-         footer: Exchange Rate - ${{ fromJSON(github.event.issue.body).exchange-rate }}
+         footer: Exchange Rate - ${{ fromJSON(github.event.issue.body).exchangeRate }}
          text: ${{ env.fTitle }}
          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
