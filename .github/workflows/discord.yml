@@ -30,6 +30,9 @@ jobs:
      - name: Fund 8
        if: ${{ env.fundR == 'Fund8' }}
        run: echo "fun=F8" >> "$GITHUB_ENV"
+     - name: Fund 9
+       if: ${{ env.fundR == 'Fund9' }}
+       run: echo "fun=F9" >> "$GITHUB_ENV"
        
      - name: FundsIn
        if: ${{ contains(fromJSON(github.event.issue.body).budget, 'Incoming') }}
@@ -66,7 +69,7 @@ jobs:
      - name: Set env data
        id: propdata
        run: |
-         echo "::set-output name=data::$(curl -s https://raw.githubusercontent.com/treasuryguild/treasury-v3/main/proposals/${{ env.fun }}-${{ fromJSON(github.event.issue.body).proposal }}.json | jq '.wallet' | sed 's/\"//g')"
+         echo "::set-output name=data::$(curl -s https://raw.githubusercontent.com/treasuryguild/treasury-system-v4/main/proposals/${{ env.fun }}-${{ fromJSON(github.event.issue.body).proposal }}.json | jq '.wallet' | sed 's/\"//g')"
      - name: Set env wallet
        run: |
          echo "wallet=${{ steps.propdata.outputs.data }}" >> "$GITHUB_ENV"
