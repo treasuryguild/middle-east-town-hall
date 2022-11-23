@@ -33,6 +33,9 @@ jobs:
      - name: Fund 9
        if: ${{ env.fundR == 'Fund9' }}
        run: echo "fun=F9" >> "$GITHUB_ENV"
+     - name: Treasury Wallet
+       if: ${{ env.fundR == 'TreasuryWallet' }}
+       run: echo "fun=TW" >> "$GITHUB_ENV"
        
      - name: FundsIn
        if: ${{ contains(fromJSON(github.event.issue.body).budget, 'Incoming') }}
